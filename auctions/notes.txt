@@ -1,0 +1,144 @@
+
+1) trouble shoot no such table: auctions_user when registering
+py manage.py makemigrations auctions this will Create model User
+py manage.py migrate
+
+2) use widgets to stylize django forms. A widget is Django’s representation of an HTML input element.
+
+3) User(abstractuser) model is similar to the model_name(models.Model), it also has a primary key, the other columns are username, password, email
+The model is given by default by not explained in lecture 4
+
+4) get data on the user who made the request via request.user
+
+5) when adding new columns to an existing model, you may get errors when migrating. fake the migration first:
+https://stackoverflow.com/questions/24311993/how-to-add-a-new-field-to-a-model-with-new-django-migrations
+
+6) reverting to prior migration https://stackoverflow.com/questions/32123477/how-to-revert-the-last-migration
+
+7a) if the table already exists and a new field/dataline is added, user null='True' to prevent migration errors. 
+When creating a new dataline there will be an emptyvalue, unless null='True', django will think empty values are not acceptable.
+
+7b) blank in models has nothing to do with the model. it just indicates whether this field can left blank when completing the form
+
+8) instead of iterating thru a python list in a form select tag, which was done in froshims, we can 
+create a separate model  where each entry would have been a list entry. Then iterate thru the model. Ex the Category Model
+
+9a) Cannot assign "'tools'": "Listing.categoryType" must be a "Category" instance. -> if overwriting fields>categoryType
+ using to_field_name
+ Cannot assign "'2'": "Listing.categoryType" must be a "Category" instance --> if not overwriting
+The listing tools has category as a foreign key.  Although the POST data matched the  foreign key id or the category name (tool/shirt)
+,foreign keys do not work that way, i have to indicate that the POST is a foreign key from the Category model
+  if POST returns a "2" which is the Category.id of tools, i have to tell django that 2 is a pk of category
+cat = Category.objects.get(pk=request.POST.get("categoryType"))
+            listing.categoryType=cat
+
+            or if i overrode the fields in the ListingForm and POST returns the string value "tools"
+                    if have to tell that "tools" is the same as the instance in Category model where category column = tools
+        listing.categoryType=request.POST.get("categoryType") DOESNOT WORK, but the following does
+        listing.categoryType=Category.objects.get(category=request.POST.get("categoryType"))
+
+As a result, of how foreignkeys work, listing.categoryType=request.POST.get("categoryType") caused errors
+
+https://stackoverflow.com/questions/48374927/can-not-assign-must-be-a-instance-django
+https://stackoverflow.com/questions/37839867/django-error-cannot-assign-must-be-an-instance
+
+9b) Watchlistview
+    current_user=request.user
+    theuser = User.objects.get(username=current_user)
+    usersWatchlist = theuser.watched.all()
+
+    works the same as:
+    current_user=request.user
+    usersWatchlist = current_user.watched.all()
+
+
+10) the modelsform>meta>fields defaults to ChoiceField not ModelChoiceField?
+
+11) when adding a new attribute = new_attribute, field.default=value sets existing instances with new_attribute = value ?
+
+12) if var:  --> checks if the var is NOT an empty string
+
+13) {% if user.is_authenticated %}  --> user can only see this part of the html if logged in
+Similar, views also has if request.user.is_authenticated
+
+14)  table_name.objects.get_or_create
+checks if an instance already exists, it will create 
+model_instance, is_created = Watchlist.objects.get_or_create(watchlistAttribute1=request.user, WatchlistAttribute2=listing)
+checks if the model instance exists in the model, if not, it will create and .save() it and return is_created = True for 2nd dvalue.
+# https://nsikakimoh.com/blog/learn-about-get_or_create-and-update_or_create
+# https://stackoverflow.com/questions/1821176/django-check-whether-an-object-already-exists-before-adding
+
+15) imagefield
+https://www.youtube.com/watch?v=O5YkEFLXcRg&t=199s
+
+ Do not need to use request.POST.get('image'). The request.FILES will get any media file uploaded 
+ + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) can be coded in the url.py under auctions folder instead of commerce
+ as the video says, the first image uploaded will automatically create the media folder and then the subfolder images
+
+16) instead of creating a watchlist model, watchlist could have been a manytomany attirbute in the Listing model, where the other object is User
+this should create a table that looks exactly like my current watchlist model. 
+where the This through table is similar to the thru table, flights_passenger_flights
+table in the flight app. These through tables appear in the database even though a model is not created for them. 
+
+Instead of declaring the WatchList model, Listing could have the attribute:
+watcher = models.Manytomany(User, on_delete=models.CASCADE, related_name="watching", null='True', blank='True')
+Even though there is a flight attr in the passenger model, there is no flight column in the passenger table. this is information is housed in the thru flight-passenger  through table.
+Similarly, although there is a watcher attr in Listing, the listing model would not have a watcher column, because that information is housed in the watcher/user-listing through table
+
+Manytomany is helpful when i needed to iterate through the queryset in watchlist.html
+Since watchlist model was created using ForeignKey instead of Manytomany, usersWatchlist = current_user.watched.all() in mywatchlist view
+returns a Watchlist queryset with a query of all the Listing the user watches.
+However, since the query set is a Wathlist Model object, i could not iterate through the queryset to obtain the Listing name, seller, because those
+attributes are from the Listing Model. Watchlist only contains listing_id(pk) and user_id(pk) attrkbutes
+To iterate through each Listing on the user's watchlist,
+I had to:
+current_user=request.user   
+usersWatchlist = current_user.watched.all()          get the Watchlist queryset containing all the Listing the user is watching
+queryset = []                                         create a list
+for item in usersWatchlist:
+   queryset.append(Listing.objects.get(pk=item.listing_id))    store the Listing object in that list
+
+
+
+
+17) Getting user input data and saving them as model instances. 
+   1) declare a model instance and then save each individual column. This is what i did for adding a new listing
+   2) declare a model instance and then save at the same time in one line. This was what was done in watchlist: listing_watched, is_created = Watchlist.objects.get_or_create(user=request.user, listing=listing)
+   3) validate user input data then create the Model instance using a dictionary. 9 minutes: https://www.youtube.com/watch?v=uz5gyXemak0&list=PLEsfXFp6DpzTD1BD1aWNxS2Ep06vIkaeW&index=25
+
+18a) redirecting to the a certain page via view name or url name
+url = reverse('listing', kwargs={'listing_id':listing_id})
+                return HttpResponseRedirect(url)
+   HttpResponseRedirect(reverse('views or path name', args or kwargs)), args and kwargs are url parameters
+https://stackoverflow.com/questions/3139973/django-return-httpresponseredirect-to-an-url-with-a-parameter
+what about return redirect(request.path) https://stackoverflow.com/questions/57077059/how-to-redirect-to-the-same-page-after-an-action-in-django
+
+18b) return redirect('listing', listing_id=listing_id) does the same thing it takes in the 'view_name' and parameeters
+
+
+19) floating point "error" https://stackoverflow.com/questions/11873046/python-weird-addition-bug
+
+20) class Watchlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watched")
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="watchers")
+
+    in views.py:
+    def myWatchlist(request):
+        current_user=request.user
+        usersWatchlist = current_user.watched.all()
+        print(usersWatchlist)
+        return render(request, "auctions/watchlist.html", {
+            "users_watchlist"
+
+21)  {% load static %} <img src="{% if listing.image %}{{ listing.image.url }}{% else %}{% static 'auctions/No-Image-Placeholder.svg.png' %}{% endif %}"  alt="Photo of {{ listing.list_item }}" class="card-img-bottom">
+needed this because it would keep trying to GET image from the by_categories path:
+
+<img src="{% if listing.image %}{{ listing.image.url }}{% else %}{media/images/No-Image-Placeholder.svg.png}{% endif %}"
+
+GET /by_categories/%7Bmedia/images/No-Image-Placeholder.svg.png%7D HTTP/1.1" 404 5171  --> 404 because media folder is not in by_categories
+
+MEDIA_URL = '/media/'  #url where media is accessed from?
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  #where media will be stored if uploaded?
+
+

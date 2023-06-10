@@ -1,0 +1,42 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %} Active Listings {% endblock %}
+
+{% block body %}
+
+    <h2 class="text-center title m-3">Active Listings</h2>
+    <div class="container d-flex flex-wrap justify-content-center pink-container">
+        
+        {% for auction in active_auctions %}
+        <div class="card m-3 border-bottom" style="width: 15rem;">
+            <a href="{% url 'listing' auction.id %}" class="text-decoration-none text-dark">
+                <div class="card-body border-top">
+                    <h5 class="card-title text-truncate text-center">{{ auction.list_item }}</h5>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-text p-2"><strong>${{ auction.current_bid }}</strong></h5>
+                    <span class="card-text p-2">Sold by: {{ auction.seller }}</span>
+                </div>
+                <img src="{% if auction.image %}{{ auction.image.url }}{% else %}media/images/No-Image-Placeholder.svg.png{% endif %}"  alt="Photo of {{ auction.list_item}}" class="card-img-bottom">
+
+            
+                
+                <div class="d-flex justify-content-between">
+                    <p class="card-text text-truncate p-4"><medium>{{ auction.description }}</small></p>
+                </div>
+            </a>
+        </div>
+
+            
+        {% empty %}
+            <li>No Auctions.</li>
+        
+        {% endfor %}
+
+</div>
+
+
+
+
+
+{% endblock %}

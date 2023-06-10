@@ -1,0 +1,71 @@
+body {
+    padding-top: 4rem;
+}
+
+
+title {
+    padding-top: 2rem;
+    padding-bottom: 1.5rem;
+}
+
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+.green-container {
+    border: 6px solid green;
+
+}
+
+.red-container {
+    border: 2px solid red;
+
+}
+
+.pink-container {
+    border: 4px solid pink;
+
+}
+
+.dotted-blue-container {
+    border: 3px dotted blue;
+
+}
+
+
+
+/* Large screens */
+@media only screen and (min-width: 992px) {
+    
+    .watchlist {
+        padding-left: 4rem;
+    }
+    
+}
+/* Medium screens */
+@media only screen and (min-width : 768px) {
+    .card {
+        display: block !important;
+        width: 15rem !important;
+        flex:none !important;
+    }
+    .card-img-top {
+        width: 100%;
+        height: 15rem !important;
+        object-fit: cover;
+    }
+
+    .card-img-bottom {
+        width: 100%;
+        height: 15rem !important;
+        object-fit: contain;
+    }
+
+    /* .no-background-medium {
+        background-color: pink !important;
+    } */
+    
+}

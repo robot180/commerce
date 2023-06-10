@@ -1,0 +1,49 @@
+{% extends "auctions/layout.html" %}
+{% block title %}Watchlist{% endblock %}
+
+
+{% block body %}
+<h2 class="title text-center border-bottom py-4">Your Watchlist</h2>
+
+
+<div class="container-fluid">
+    
+ 
+    {% for each_item in Listings_watchedbyUser %}
+        <a href="{% url 'listing' each_item.id %}" class="text-decoration-none text-dark">
+            <div class="row mb-3 watchlist border-bottom mx-auto">
+                <div class="media mb-3">
+                    <div class="d-flex flex-column" style="width:100px">
+                        {% if each_item.active == True %}
+                            <span class="badge badge-success mb-1">Active</span>
+                        {% else %}
+                            <span class="badge badge-danger mb-1">Closed</span>
+                        {% endif %}
+                        <img src="{% if each_item.image %}{{ each_item.image.url }}{% else %}media/images/No-Image-Placeholder.svg.png{% endif %}" class="mr-3 rounded" style="width: 100px;" alt="Photo of {{ each_item.list_item }}">
+                    </div>
+                    <div class="media-body ml-4 my-auto">
+                        <h5><small class="mt-0 mr-3"><strong>{{each_item.title}}</strong></small></h5>
+                        <small>
+                            {% if each_item.active == True %}
+                                Current price ${{each_item.current_bid}}
+                                {% if each_item.highest_bidder == user %}
+                                    <br>You are the highest bidder
+                                {% endif %}
+                            {% else %}
+                                {% if each_item.highest_bidder == user %}
+                                    You won this auction!
+                                {% endif %}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </a>
+        
+     
+    {% empty %}
+            You are not watching any listings.
+    {% endfor %}
+</div>
+
+{% endblock %}

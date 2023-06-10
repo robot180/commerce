@@ -1,0 +1,145 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}{{ selectedListing.list_item }} {% endblock %}
+
+{% block body %}
+    
+        <!-- {% for message in messages %}
+            {% if 'warning' in message.tags %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+            {% elif 'success' in message.tags %}
+            <div class="alert alert-success" role="alert">{{ message }}</div>
+            {% endif %}
+        {% endfor %}
+     -->
+
+<div class="container-lg pt-2 pb-3">
+    <div class="row mt-2 align-items-center">
+
+        <!--Image and Price section-->
+        <div class="col-md-6 col-12 d-flex">
+            <img style="max-height: 450px;" class="img-fluid mx-auto" src="{% if selectedListing.image %}{{ selectedListing.image.url }}{% else %}media/images/No-Image-Placeholder.svg.png{% endif %}"  alt="Photo of {{ auction.list_item}}">
+        </div>
+
+        <!-- Listing Information and Bid Form -->
+        <div class="col-md-6 col-12 border align-self-center pt-4 px-4">
+            {% if user.is_authenticated %}
+                <!-- Watchlist -->  
+                    <div class="text-right pb-3">
+                    {% if watched %}
+                        <form action="{% url 'RemoveFrom_watchlist' selectedListing.id %}" method = "POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-primary btn-sm"><i class="fa fa-minus" aria-hidden="true"></i> Remove From Watchlist</button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'AddTo_watchlist' selectedListing.id %}" method = "POST">
+                                {% csrf_token %}
+                                <input type="submit" value="Add to Watchlist">
+                        </form>
+                    {% endif %}
+                    </div>
+            {% endif %}
+            
+            <!-- Listing information -->
+            <h3 class="m-0 pb-3">{{ selectedListing.list_item  }}</h3>
+            <p class="my-1 pb-3"><small><em>Listing #{{ selectedListing.id }}: {% if selectedListing.description %}{{ selectedListing.description }}{% else %}No description.{% endif %}</em></small></p>
+            {% if selectedListing.categoryType %}
+                <li>Category: {{ selectedListing.categoryType }}</li>
+            {% endif %}
+            <p class="text-monospace text-muted border-bottom pb-3">
+                <small>Sold by: {{ selectedListing.seller }}</small>
+            </p>
+
+            <!-- Current and Winning Bid information -->
+            <div class="text-center my-4">
+                <!-- If auction is not active-->
+                {% if not selectedListing.active %}
+                    <h5 class="pt-2">Winnning Bid: ${{ selectedListing.current_bid }}</h5>
+                    <!-- If auction user is the winner-->
+                    {% if user.is_authenticated and user == selectedListing.highest_bidder %}
+                        <h5>You won this auction!</h5>
+                    {% endif %}
+                <!-- If auction is active-->
+                {% else %}
+                    <h5 class="pt-2">Current Bid: <strong>${{ selectedListing.current_bid }}</strong></h5>
+                    {% if user.is_authenticated and user == selectedListing.highest_bidder %}
+                        <span class="badge badge-pill badge-success">You are the highest bidder!</span>
+                    {% endif %}
+                {% endif %}
+
+            <!-- Bid form -->    
+            
+                <div class="pt-2">
+                    {% if user.is_authenticated and user == selectedListing.seller %}
+                    <form action="{% url 'closeurl' selectedListing.id %}" method = "POST">
+                        {% csrf_token %}
+                        <input class="btn btn-success ml-2" type="submit" value="Close Bidding">
+                    </form>
+                {% else %}
+                    <div class="col-md-6 col-sm-10 m-auto">
+                    <!-- bid form starts -->
+                    <form action="{% url 'bidurl' selectedListing.id %}" method = "POST"> 
+                        {% csrf_token %}
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend ">
+                                <div class="input-group-text">$</div>
+                            </div>
+                            <input class="form-control" type="number" step="0.01" name="bid_amount" min="{{ minBid }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col text-center my-1">
+                        <input class="btn btn-primary ml-2" type="submit" value="Place Bid" background-color="#8064A">
+                    </form>
+                    <!-- bid form ends -->
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment Section begins    -->
+    
+    <div class="row py-4 justify-content-center">
+
+        <div class="col col-sm-10 mx-3 mx-sm-0">
+            <h4>Comments</h4>
+
+            <!-- comment form starts -->
+            {% if user.is_authenticated %}
+                <form action="{% url 'addCommenturl' selectedListing.id %}" method = "POST">
+                    {% csrf_token %}
+                    <div class="form-group pt-2">
+                        {{ form }}
+                    </div>
+                    <div class="form-group text-right mb-2">
+                        <input type="submit" value="Add Comment">
+                    </div>
+                </form>
+        {% endif %}
+        
+    </div>
+    <div class="container pt-4">
+        {% for each_comment in allComments_forListing %}
+            <div class="row border bg-light py-2 mx-0 mx-md-3 mb-3">
+                <div class="col-6">
+                    {{ each_comment }}
+                </div>
+            </div>   
+        {% empty %}
+        <div class="row border bg-light py-2 mx-0 mx-md-3 mb-3">
+            <p class="px-4">There are no comments.</p>
+        </div>
+        {% endfor %}
+            
+
+
+        
+
+    </div>
+</div>
+{% endblock %}
+
